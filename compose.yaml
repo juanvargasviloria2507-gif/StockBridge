@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-stockbridge}
+      POSTGRES_USER: ${POSTGRES_USER:-stockbridge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stockbridge_dev_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - stockbridge-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - stockbridge-network
+
+  supplier-availability-service:
+    build:
+      context: .
+      dockerfile: supplier-availability-service/Dockerfile
+    image: stockbridge/supplier-availability-service:latest
+    ports:
+      - "8082:8082"
+    networks:
+      - stockbridge-network
+
+  inventory-management-service:
+    build:
+      context: .
+      dockerfile: inventory-management-service/Dockerfile
+    image: stockbridge/inventory-management-service:latest
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-stockbridge}
+      DB_USERNAME: ${POSTGRES_USER:-stockbridge}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-stockbridge_dev_password}
+      DB_DRIVER: org.postgresql.Driver
+      JPA_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      SUPPLIER_AVAILABILITY_URL: http://supplier-availability-service:8082/api/suppliers/check-availability
+      JWT_SECRET: ${JWT_SECRET:-c3RvY2ticmlkZ2UtZGV2ZWxvcG1lbnQtc2VjcmV0LWtleS0zMi1ieXRlcyE=}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      supplier-availability-service:
+        condition: service_started
+    networks:
+      - stockbridge-network
+
+volumes:
+  stockbridge-postgres-data:
+
+networks:
+  stockbridge-network:
+    driver: bridge

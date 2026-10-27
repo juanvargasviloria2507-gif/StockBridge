@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.4</version> <!-- VERSIÓN ESTABLE -->
+        <relativePath/>
+    </parent>
+
+    <groupId>org</groupId>
+    <artifactId>StockBridge</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging> <!-- MUY IMPORTANTE: Indica que es el POM Padre -->
+
+    <name>StockBridge Parent</name>
+    <description>Proyecto Multi-modulo StockBridge</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <datasource-micrometer.version>2.3.0</datasource-micrometer.version>
+    </properties>
+
+    <!-- Declaramos los dos microservicios -->
+    <modules>
+        <module>inventory-management-service</module>
+        <module>supplier-availability-service</module>
+    </modules>
+
+    <!-- Gestión de versiones compartidas -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>net.ttddyy.observation</groupId>
+                <artifactId>datasource-micrometer-bom</artifactId>
+                <version>${datasource-micrometer.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>
